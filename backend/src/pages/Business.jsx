@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { API } from '../App'
-import { Store, X, Check, Edit2, Save, Settings, Clock, Globe, Bell } from 'lucide-react'
+import { Store, X, Check, Edit2, Save, Settings, Clock, Globe, Bell, Shield, Key, MessageSquare, Smartphone } from 'lucide-react'
 
 const segments = ['alimentacao', 'oficina', 'estetica', 'imobiliario', 'distribuidora', 'outro']
 
@@ -32,65 +32,77 @@ export default function Business() {
     load()
   }
 
-  if (loading) return <div className="animate-pulse space-y-6"><div className="h-48 bg-gray-200 rounded-2xl" /></div>
+  if (loading) return (
+    <div className="space-y-6 animate-pulse">
+      <div className="h-48 bg-gray-200 rounded-2xl" />
+      <div className="h-48 bg-gray-200 rounded-2xl" />
+    </div>
+  )
 
   const b = data?.data || data
   const config = b?.config || {}
+
+  const SettingSection = ({ icon: Icon, title, description, children }) => (
+    <div className="card p-6">
+      <div className="flex items-start gap-4 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-[#86C9CD]/10 flex items-center justify-center flex-shrink-0">
+          <Icon size={24} className="text-[#65B1B7]" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-lg text-gray-900">{title}</h3>
+          <p className="text-sm text-gray-500">{description}</p>
+        </div>
+      </div>
+      {children}
+    </div>
+  )
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="page-header">
         <div>
           <h1 className="page-title">Configurações</h1>
-          <p className="page-subtitle">Gerencie seu negócio</p>
+          <p className="page-subtitle">Gerencie seu negócio e preferências</p>
         </div>
         {!editing ? (
-          <button onClick={() => setEditing(true)} className="btn-primary"><Edit2 size={16} /> Editar</button>
+          <button onClick={() => setEditing(true)} className="btn btn-primary">
+            <Edit2 size={16} /> Editar
+          </button>
         ) : (
           <div className="flex gap-2">
-            <button onClick={() => setEditing(false)} className="btn-secondary">Cancelar</button>
-            <button onClick={handleSubmit} className="btn-primary"><Save size={16} /> Salvar</button>
+            <button onClick={() => setEditing(false)} className="btn btn-secondary">Cancelar</button>
+            <button onClick={handleSubmit} className="btn btn-primary"><Save size={16} /> Salvar</button>
           </div>
         )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Business Info */}
-        <div className="card p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#86C9CD] to-[#65B1B7] flex items-center justify-center">
-              <Store size={28} className="text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg">Dados do Negócio</h3>
-              <p className="text-sm text-gray-500">Informações básicas</p>
-            </div>
-          </div>
-
+        <SettingSection icon={Store} title="Dados do Negócio" description="Informações básicas da sua empresa">
           {editing ? (
             <form className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                <label className="label">Nome</label>
                 <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                <label className="label">Telefone</label>
                 <input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="input" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Segmento</label>
-                <select value={form.segment} onChange={e => setForm({...form, segment: e.target.value})} className="input">
+                <label className="label">Segmento</label>
+                <select value={form.segment} onChange={e => setForm({...form, segment: e.target.value})} className="input select">
                   {segments.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
                 </select>
               </div>
             </form>
           ) : (
             <div className="space-y-4">
-              <div className="flex justify-between py-3 border-b border-black/5">
+              <div className="flex justify-between py-3 border-b border-gray-100">
                 <span className="text-gray-500">Nome</span>
                 <span className="font-medium">{b?.name || '—'}</span>
               </div>
-              <div className="flex justify-between py-3 border-b border-black/5">
+              <div className="flex justify-between py-3 border-b border-gray-100">
                 <span className="text-gray-500">Segmento</span>
                 <span className="font-medium capitalize">{b?.segment || '—'}</span>
               </div>
@@ -100,60 +112,91 @@ export default function Business() {
               </div>
             </div>
           )}
-        </div>
+        </SettingSection>
 
-        {/* Config */}
-        <div className="card p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D59846] to-[#9E7452] flex items-center justify-center">
-              <Settings size={28} className="text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg">Configurações</h3>
-              <p className="text-sm text-gray-500">Horário e notificações</p>
-            </div>
-          </div>
-
+        {/* Operational Settings */}
+        <SettingSection icon={Clock} title="Horário de Funcionamento" description="Quando seu negócio está aberto">
           <div className="space-y-4">
-            <div className="flex items-center gap-3 py-3 border-b border-black/5">
-              <Clock size={18} className="text-gray-400" />
-              <span className="text-gray-500 flex-1">Horário</span>
+            <div className="flex justify-between py-3 border-b border-gray-100">
+              <span className="text-gray-500">Horário</span>
               <span className="font-medium">{config.horario_funcionamento || '08:00-18:00'}</span>
             </div>
-            <div className="flex items-center gap-3 py-3 border-b border-black/5">
-              <Globe size={18} className="text-gray-400" />
-              <span className="text-gray-500 flex-1">Moeda</span>
+            <div className="flex justify-between py-3 border-b border-gray-100">
+              <span className="text-gray-500">Moeda</span>
               <span className="font-medium">{config.currency || 'BRL'}</span>
             </div>
-            <div className="flex items-center gap-3 py-3 border-b border-black/5">
-              <Bell size={18} className="text-gray-400" />
-              <span className="text-gray-500 flex-1">Notificações</span>
-              <span className="font-medium">{config.notificacoes?.estoque_baixo ? 'Ativas' : 'Inativas'}</span>
-            </div>
-            <div className="flex items-center gap-3 py-3">
-              <Settings size={18} className="text-gray-400" />
-              <span className="text-gray-500 flex-1">Agendamento</span>
+            <div className="flex justify-between py-3">
+              <span className="text-gray-500">Agendamento</span>
               <span className="badge badge-info">{config.agendamento_tipo || 'gestor'}</span>
             </div>
           </div>
-        </div>
+        </SettingSection>
+
+        {/* Notifications */}
+        <SettingSection icon={Bell} title="Notificações" description="Alertas e avisos importantes">
+          <div className="space-y-4">
+            {[
+              { key: 'estoque_baixo', label: 'Estoque Baixo', desc: 'Quando produtos estão acabando' },
+              { key: 'orcamento_respondido', label: 'Orçamento Respondido', desc: 'Quando fornecedores respondem' },
+              { key: 'pagamento_pendente', label: 'Pagamento Pendente', desc: 'Quando há parcelas a receber' },
+            ].map(item => (
+              <div key={item.key} className="flex items-center justify-between py-3 border-b border-gray-100">
+                <div>
+                  <p className="font-medium text-gray-900">{item.label}</p>
+                  <p className="text-sm text-gray-500">{item.desc}</p>
+                </div>
+                <div className={`w-10 h-6 rounded-full transition ${config.notificacoes?.[item.key] ? 'bg-[#86C9CD]' : 'bg-gray-200'}`}>
+                  <div className={`w-4 h-4 rounded-full bg-white shadow transition mt-1 ${config.notificacoes?.[item.key] ? 'translate-x-5' : 'translate-x-1'}`} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </SettingSection>
+
+        {/* WhatsApp Integration */}
+        <SettingSection icon={MessageSquare} title="Integração WhatsApp" description="Configuração do uazapi">
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                <Check size={16} className="text-white" />
+              </div>
+              <p className="font-medium text-green-800">Configurado</p>
+            </div>
+            <p className="text-sm text-green-700">O webhook está ativo e funcionando corretamente.</p>
+          </div>
+          <div className="mt-4 space-y-3">
+            <div className="flex justify-between py-2 border-b border-gray-100">
+              <span className="text-gray-500 text-sm">Webhook URL</span>
+              <span className="text-sm font-mono text-[#65B1B7]">/fw/webhook/{b?.id?.slice(0, 8) || '...'}</span>
+            </div>
+            <button className="btn btn-secondary btn-sm w-full">
+              <Settings size={14} /> Configurar uazapi
+            </button>
+          </div>
+        </SettingSection>
       </div>
 
-      {/* uazapi Config */}
+      {/* Account Section */}
       <div className="card p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-white">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
-            </svg>
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#86C9CD] to-[#65B1B7] flex items-center justify-center">
+            <Shield size={24} className="text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-lg">Integração WhatsApp</h3>
-            <p className="text-sm text-gray-500">Configuração do uazapi</p>
+            <h3 className="font-semibold text-lg text-gray-900">Segurança</h3>
+            <p className="text-sm text-gray-500">Gerencie sua conta e acessos</p>
           </div>
         </div>
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-          <p className="text-sm text-green-800">Configure as credenciais do uazapi no painel de administração para ativar o envio de mensagens via WhatsApp.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <button className="btn btn-secondary justify-start">
+            <Key size={16} /> Alterar Senha
+          </button>
+          <button className="btn btn-secondary justify-start">
+            <Smartphone size={16} /> 2FA
+          </button>
+          <button className="btn btn-secondary justify-start text-red-600 hover:bg-red-50">
+            <X size={16} /> Sair de Todos
+          </button>
         </div>
       </div>
     </div>

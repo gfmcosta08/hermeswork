@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { API } from '../App'
-import { Plus, Search, Users, X, Edit2, Trash2, Check, MessageCircle } from 'lucide-react'
+import { Plus, Search, Users, X, Edit2, Trash2, Check, MessageCircle, Phone, MoreVertical, Filter } from 'lucide-react'
 
 const typeConfig = {
   cliente: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
@@ -13,9 +13,11 @@ const typeConfig = {
 export default function Contacts() {
   const [contacts, setContacts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [search, setSearch] = useState('')
+  const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState(null)
+  const [search, setSearch] = useState('')
+  const [filterType, setFilterType] = useState('all')
+  const [menuOpen, setMenuOpen] = useState(null)
   const [form, setForm] = useState({ name: '', whatsapp_number: '', type: 'cliente', segment: '' })
   const token = localStorage.getItem('token')
 
@@ -44,7 +46,7 @@ export default function Contacts() {
         body: JSON.stringify(form),
       })
     }
-    setShowForm(false)
+    setShowModal(false)
     setEditingId(null)
     setForm({ name: '', whatsapp_number: '', type: 'cliente', segment: '' })
     load()
@@ -58,7 +60,8 @@ export default function Contacts() {
       segment: contact.segment || ''
     })
     setEditingId(contact.id)
-    setShowForm(true)
+    setShowModal(true)
+    setMenuOpen(null)
   }
 
   async function handleDelete(id) {
@@ -67,65 +70,92 @@ export default function Contacts() {
     load()
   }
 
-  const filtered = contacts.filter(c =>
-    (c.name || '').toLowerCase().includes(search.toLowerCase()) ||
-    (c.whatsapp_number || '').includes(search)
-  )
+  const filtered = useMemo(() => {
+    return contacts.filter(c => {
+      const matchesSearch = (c.name || '').toLowerCase().includes(search.toLowerCase()) || (c.whatsapp_number || '').includes(search)
+      const matchesType = filterType === 'all' || c.type === filterType
+      return matchesSearch && matchesType
+    })
+  }, [contacts, search, filterType])
+
+  const typeLabels = { cliente: 'Cliente', fornecedor: 'Fornecedor', parceiro: 'Parceiro', gestor: 'Gestor', corretor: 'Corretor' }
+
+  const openModal = (contact = null) => {
+    if (contact) {
+      handleEdit(contact)
+    } else {
+      setForm({ name: '', whatsapp_number: '', type: 'cliente', segment: '' })
+      setEditingId(null)
+    }
+    setShowModal(true)
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="page-header">
         <div>
           <h1 className="page-title">Contatos</h1>
-          <p className="page-subtitle">{contacts.length} contatos cadastrados</p>
+          <p className="page-subtitle">{filtered.length} de {contacts.length} contatos</p>
         </div>
-        <button onClick={() => { setShowForm(true); setEditingId(null); setForm({ name: '', whatsapp_number: '', type: 'cliente', segment: '' }) }}
-          className="btn-primary">
+        <button onClick={() => openModal()} className="btn btn-primary">
           <Plus size={18} /> Novo Contato
         </button>
       </div>
 
-      <div className="relative">
-        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input type="text" placeholder="Buscar por nome ou WhatsApp..." value={search}
-          onChange={e => setSearch(e.target.value)} className="input pl-11 max-w-md" />
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar por nome ou WhatsApp..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="input pl-11"
+          />
+        </div>
+        <select
+          value={filterType}
+          onChange={e => setFilterType(e.target.value)}
+          className="input select w-full sm:w-48"
+        >
+          <option value="all">Todos os tipos</option>
+          {Object.entries(typeLabels).map(([k, v]) => (
+            <option key={k} value={k}>{v}</option>
+          ))}
+        </select>
       </div>
 
-      {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">{editingId ? 'Editar Contato' : 'Novo Contato'}</h3>
-              <button onClick={() => setShowForm(false)} className="p-2 hover:bg-black/5 rounded-lg transition"><X size={18} /></button>
+            <div className="modal-header">
+              <h3 className="modal-title">{editingId ? 'Editar Contato' : 'Novo Contato'}</h3>
+              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                <label className="label">Nome</label>
                 <input placeholder="Nome do contato" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
+                <label className="label">WhatsApp *</label>
                 <input placeholder="11999999999" value={form.whatsapp_number} onChange={e => setForm({...form, whatsapp_number: e.target.value})} className="input" required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-                  <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="input">
-                    <option value="cliente">Cliente</option>
-                    <option value="fornecedor">Fornecedor</option>
-                    <option value="parceiro">Parceiro</option>
-                    <option value="gestor">Gestor</option>
-                    <option value="corretor">Corretor</option>
+                  <label className="label">Tipo</label>
+                  <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="input select">
+                    {Object.entries(typeLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Segmento</label>
+                  <label className="label">Segmento</label>
                   <input placeholder="Ex: peças_moto" value={form.segment} onChange={e => setForm({...form, segment: e.target.value})} className="input" />
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary flex-1">Cancelar</button>
-                <button type="submit" className="btn-primary flex-1">
+                <button type="button" onClick={() => setShowModal(false)} className="btn btn-secondary flex-1">Cancelar</button>
+                <button type="submit" className="btn btn-primary flex-1">
                   {editingId ? <><Check size={16} /> Salvar</> : <><Plus size={16} /> Criar</>}
                 </button>
               </div>
@@ -137,8 +167,15 @@ export default function Contacts() {
       {loading ? (
         <div className="card animate-pulse p-5"><div className="h-20 bg-gray-200 rounded-xl" /></div>
       ) : filtered.length === 0 ? (
-        <div className="card"><div className="empty-state"><Users size={48} className="text-gray-300 mx-auto mb-3" />
-          <p className="font-medium">Nenhum contato encontrado</p></div></div>
+        <div className="card">
+          <div className="empty-state">
+            <Users size={48} />
+            <p className="font-medium text-gray-900 mt-4">Nenhum contato encontrado</p>
+            <p className="text-sm text-gray-500 mt-1">
+              {search || filterType !== 'all' ? 'Tente buscar por outro termo' : 'Adicione seu primeiro contato'}
+            </p>
+          </div>
+        </div>
       ) : (
         <div className="table-container">
           <table>
@@ -163,16 +200,27 @@ export default function Contacts() {
                     </td>
                     <td>
                       <a href={`https://wa.me/${c.whatsapp_number}`} target="_blank" rel="noreferrer"
-                        className="flex items-center gap-1 text-[#65B1B7] hover:text-[#86C9CD]">
-                        <MessageCircle size={14} />{c.whatsapp_number}
+                        className="flex items-center gap-1.5 text-[#65B1B7] hover:text-[#86C9CD]">
+                        <MessageCircle size={14} />
+                        {c.whatsapp_number}
                       </a>
                     </td>
-                    <td><span className={`badge border ${config.text.replace('text-', 'bg-').replace('600', '100')} ${config.border}`}>{c.type}</span></td>
-                    <td className="text-gray-500 text-sm">{c.last_seen ? new Date(c.last_seen).toLocaleDateString('pt-BR') : '—'}</td>
+                    <td>
+                      <span className={`badge border ${config.text.replace('text-', 'bg-').replace('600', '100')} ${config.border}`}>
+                        {typeLabels[c.type] || c.type}
+                      </span>
+                    </td>
+                    <td className="text-gray-500 text-sm">
+                      {c.last_seen ? new Date(c.last_seen).toLocaleDateString('pt-BR') : '—'}
+                    </td>
                     <td>
                       <div className="flex gap-1 justify-end">
-                        <button onClick={() => handleEdit(c)} className="p-2 hover:bg-black/5 rounded-lg transition"><Edit2 size={14} className="text-gray-500" /></button>
-                        <button onClick={() => handleDelete(c.id)} className="p-2 hover:bg-red-50 rounded-lg transition"><Trash2 size={14} className="text-red-500" /></button>
+                        <button onClick={() => handleEdit(c)} className="p-2 hover:bg-gray-100 rounded-lg transition">
+                          <Edit2 size={14} className="text-gray-500" />
+                        </button>
+                        <button onClick={() => handleDelete(c.id)} className="p-2 hover:bg-red-50 rounded-lg transition">
+                          <Trash2 size={14} className="text-red-500" />
+                        </button>
                       </div>
                     </td>
                   </tr>
