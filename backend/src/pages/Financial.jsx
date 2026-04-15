@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { API } from '../App'
+import { Plus, Search, DollarSign, X, Check, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
 
 export default function Financial() {
   const [entries, setEntries] = useState([])
@@ -33,67 +34,124 @@ export default function Financial() {
   const despesas = entries.filter(e => e.type === 'despesa').reduce((s, e) => s + parseFloat(e.amount || 0), 0)
   const saldo = receitas - despesas
 
-  const categoryOptions = ['mao_obra', 'material', 'alimentacao', 'diarista', 'imovel_venda', 'imovel_comissao', 'outro']
-  const methodOptions = ['dinheiro', 'pix', 'cartao_credito', 'cartao_debito']
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">💰 Financeiro</h1>
-        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-brand-turquoise text-white rounded-xl text-sm font-medium hover:opacity-80">
-          + Nova Entrada
-        </button>
+    <div className="space-y-6 animate-fade-in">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Financeiro</h1>
+          <p className="page-subtitle">Controle suas receitas e despesas</p>
+        </div>
+        <button onClick={() => setShowForm(true)} className="btn-primary"><Plus size={18} /> Nova Entrada</button>
       </div>
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-black/5">
-          <div className="text-sm text-gray-500 mb-1">Entradas</div>
-          <div className="text-2xl font-bold text-green-600">R$ {receitas.toFixed(2).replace('.', ',')}</div>
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="stat-card">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center"><ArrowUpCircle size={24} className="text-green-600" /></div>
+            <div>
+              <p className="text-sm text-gray-500">Entradas</p>
+              <p className="text-2xl font-bold text-green-600">R$ {receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            </div>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-black/5">
-          <div className="text-sm text-gray-500 mb-1">Saídas</div>
-          <div className="text-2xl font-bold text-red-600">R$ {despesas.toFixed(2).replace('.', ',')}</div>
+        <div className="stat-card">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center"><ArrowDownCircle size={24} className="text-red-600" /></div>
+            <div>
+              <p className="text-sm text-gray-500">Saídas</p>
+              <p className="text-2xl font-bold text-red-600">R$ {despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            </div>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-black/5">
-          <div className="text-sm text-gray-500 mb-1">Saldo</div>
-          <div className={`text-2xl font-bold ${saldo >= 0 ? 'text-blue-600' : 'text-red-600'}`}>R$ {saldo.toFixed(2).replace('.', ',')}</div>
+        <div className="stat-card">
+          <div className="flex items-center gap-3 mb-3">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${saldo >= 0 ? 'bg-blue-50' : 'bg-red-50'}`}>
+              <DollarSign size={24} className={saldo >= 0 ? 'text-blue-600' : 'text-red-600'} />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Saldo</p>
+              <p className={`text-2xl font-bold ${saldo >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                R$ {saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
+
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 border border-black/5 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="border rounded-xl px-4 py-2 text-sm">
-              <option value="receita">Receita</option>
-              <option value="despesa">Despesa</option>
-            </select>
-            <input placeholder="Valor" type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="border rounded-xl px-4 py-2 text-sm" required />
+        <div className="modal-overlay" onClick={() => setShowForm(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">Nova Entrada</h3>
+              <button onClick={() => setShowForm(false)} className="p-2 hover:bg-black/5 rounded-lg transition"><X size={18} /></button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                  <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="input">
+                    <option value="receita">Receita</option>
+                    <option value="despesa">Despesa</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Valor</label>
+                  <input placeholder="0,00" type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="input" required />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                <input placeholder="Descrição" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="input" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                  <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="input">
+                    <option value="">Selecione</option>
+                    <option value="mao_obra">Mão de Obra</option>
+                    <option value="material">Material</option>
+                    <option value="alimentacao">Alimentação</option>
+                    <option value="diarista">Diarista</option>
+                    <option value="outro">Outro</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento</label>
+                  <select value={form.payment_method} onChange={e => setForm({...form, payment_method: e.target.value})} className="input">
+                    <option value="">Selecione</option>
+                    <option value="dinheiro">Dinheiro</option>
+                    <option value="pix">PIX</option>
+                    <option value="cartao_credito">Cartão Crédito</option>
+                    <option value="cartao_debito">Cartão Débito</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary flex-1">Cancelar</button>
+                <button type="submit" className="btn-primary flex-1"><Plus size={16} /> Criar</button>
+              </div>
+            </form>
           </div>
-          <input placeholder="Descrição" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="border rounded-xl px-4 py-2 text-sm w-full" />
-          <div className="grid grid-cols-2 gap-4">
-            <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="border rounded-xl px-4 py-2 text-sm">
-              <option value="">Categoria</option>
-              {categoryOptions.map(c => <option key={c} value={c}>{c.replace('_', ' ')}</option>)}
-            </select>
-            <select value={form.payment_method} onChange={e => setForm({...form, payment_method: e.target.value})} className="border rounded-xl px-4 py-2 text-sm">
-              <option value="">Forma de pagamento</option>
-              {methodOptions.map(m => <option key={m} value={m}>{m.replace('_', ' ')}</option>)}
-            </select>
-          </div>
-          <button type="submit" className="px-6 py-2 bg-brand-turquoise text-white rounded-xl text-sm font-medium">Salvar</button>
-        </form>
+        </div>
       )}
-      {loading ? <div className="text-center text-gray-400 py-8">Carregando...</div> : entries.length === 0 ? (
-        <div className="bg-white rounded-2xl p-8 border text-center text-gray-400">Nenhuma entrada financeira ainda</div>
+
+      {loading ? <div className="card animate-pulse p-5"><div className="h-40 bg-gray-200 rounded-xl" /></div>
+       : entries.length === 0 ? (
+        <div className="card"><div className="empty-state"><DollarSign size={48} className="text-gray-300 mx-auto mb-3" /><p className="font-medium">Nenhuma entrada financeira</p></div></div>
       ) : (
-        <div className="bg-white rounded-2xl border border-black/5 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-500"><tr><td className="px-4 py-3 font-medium">Descrição</td><td className="px-4 py-3 font-medium">Tipo</td><td className="px-4 py-3 font-medium">Categoria</td><td className="px-4 py-3 font-medium">Valor</td></tr></thead>
+        <div className="table-container">
+          <table>
+            <thead><tr><th>Descrição</th><th>Tipo</th><th>Categoria</th><th>Valor</th></tr></thead>
             <tbody>
               {entries.map(e => (
-                <tr key={e.id} className="border-t border-black/5 hover:bg-gray-50">
-                  <td className="px-4 py-3">{e.description || '—'}</td>
-                  <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs ${e.type === 'receita' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{e.type}</span></td>
-                  <td className="px-4 py-3 text-gray-500">{e.category || '—'}</td>
-                  <td className={`px-4 py-3 font-bold ${e.type === 'receita' ? 'text-green-600' : 'text-red-600'}`}>R$ {parseFloat(e.amount || 0).toFixed(2).replace('.', ',')}</td>
+                <tr key={e.id}>
+                  <td className="font-medium">{e.description || '—'}</td>
+                  <td><span className={`badge ${e.type === 'receita' ? 'badge-success' : 'badge-danger'}`}>{e.type}</span></td>
+                  <td className="text-gray-500">{e.category || '—'}</td>
+                  <td className={`font-bold ${e.type === 'receita' ? 'text-green-600' : 'text-red-600'}`}>
+                    {e.type === 'receita' ? '+' : '-'} R$ {parseFloat(e.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </td>
                 </tr>
               ))}
             </tbody>
