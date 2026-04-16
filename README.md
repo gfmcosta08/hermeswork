@@ -1,16 +1,86 @@
-# React + Vite
+﻿# FarollWork SaaS (Completo - Base Operacional)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SaaS multiempresa com:
+- API interna (Fastify + TypeScript)
+- Painel web (Next.js + Tailwind)
+- Banco Supabase (migrations SQL)
+- Segurança de webhook (HMAC + anti-replay + idempotência)
+- Isolamento por `empresa_id`
 
-Currently, two official plugins are available:
+## Estrutura
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- `apps/api`: autenticação, webhook, CRUD e regras de negócio
+- `apps/web`: painel com login e módulos operacionais
+- `supabase/migrations`: schema inicial e expansão
 
-## React Compiler
+## Funcionalidades já implementadas
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Backend
+- `POST /auth/bootstrap` cria usuário inicial (admin/gestor)
+- `POST /auth/login` autenticação JWT
+- `GET /auth/me` usuário autenticado
+- `POST /webhook/:clienteId` com validação de assinatura/token
+- CRUD completo: `GET/POST/PUT/DELETE /api/:resource`
+- Resumo: `GET /api/dashboard/summary`
+- Estoque: `POST /api/estoque/movimentar`
+- Transações: `POST /api/transacoes/:id/confirmar` e `/cancelar`
+- Financeiro: `GET /api/financeiro/relatorio`
+- Imóveis recomendados: `GET /api/imoveis/recomendados/:imovelId`
 
-## Expanding the ESLint configuration
+### Frontend
+- Login com JWT
+- Área protegida `/app`
+- Módulos:
+  - Dashboard
+  - Contatos
+  - Produtos
+  - Estoque
+  - Transações
+  - Financeiro
+  - Imóveis
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Setup
+
+1. Copie `.env.example` para `.env` e preencha.
+2. Instale dependências:
+
+```bash
+npm install
+```
+
+3. Rode API:
+
+```bash
+npm run dev:api
+```
+
+4. Rode Web:
+
+```bash
+npm run dev:web
+```
+
+## Bootstrap inicial (primeiro usuário)
+
+Com API rodando:
+
+```bash
+curl -X POST http://localhost:3333/auth/bootstrap \
+  -H "Content-Type: application/json" \
+  -d '{
+    "empresa_id":"UUID_DA_EMPRESA",
+    "nome":"Admin",
+    "email":"admin@empresa.com",
+    "password":"SenhaForte123",
+    "role":"admin"
+  }'
+```
+
+Depois faça login em `/login`.
+
+## Migrations
+
+- `supabase/migrations/0001_init.sql`
+- `supabase/migrations/0002_expand_saas.sql`
+
+Aplique no projeto Supabase antes de usar o sistema.
