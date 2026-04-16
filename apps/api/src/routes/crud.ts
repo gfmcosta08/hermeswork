@@ -5,17 +5,26 @@ import { supabaseAdmin } from "../lib/supabase.js";
 const resources = {
   empresas: { table: "empresa", scoped: false, adminOnly: true },
   usuarios: { table: "usuario", scoped: true, adminOnly: true },
+  agentes: { table: "agent_instance", scoped: true, adminOnly: true },
+  auditoria: { table: "audit_log", scoped: true, adminOnly: true },
   contatos: { table: "contato", scoped: true, adminOnly: false },
   produtos: { table: "produto", scoped: true, adminOnly: false },
   estoque: { table: "estoque", scoped: true, adminOnly: false },
+  movimentacoes_estoque: { table: "movimentacao_estoque", scoped: true, adminOnly: false },
   transacoes: { table: "transacao", scoped: true, adminOnly: false },
+  itens_transacao: { table: "item_transacao", scoped: true, adminOnly: false },
   financeiro: { table: "financeiro", scoped: true, adminOnly: false },
+  categorias_financeiras: { table: "categoria_financeira", scoped: true, adminOnly: false },
+  solicitacoes_orcamento: { table: "solicitacao_orcamento", scoped: true, adminOnly: false },
+  respostas_orcamento: { table: "resposta_orcamento", scoped: true, adminOnly: false },
   imoveis: { table: "imovel", scoped: true, adminOnly: false },
-  leads: { table: "lead_imovel", scoped: true, adminOnly: false },
+  corretores: { table: "corretor", scoped: true, adminOnly: false },
+  leads: { table: "lead_imobiliario", scoped: true, adminOnly: false },
+  visitas: { table: "visita_imovel", scoped: true, adminOnly: false },
   notificacoes: { table: "notificacao_evento", scoped: true, adminOnly: false },
+  mensagens_evento: { table: "mensagem_evento", scoped: true, adminOnly: false },
+  sessoes_conversa: { table: "sessao_conversa", scoped: true, adminOnly: false },
 } as const;
-
-type Resource = keyof typeof resources;
 
 function resolveResource(key: string) {
   return (resources as Record<string, { table: string; scoped: boolean; adminOnly: boolean }>)[key] ?? null;

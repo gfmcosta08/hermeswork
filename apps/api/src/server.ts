@@ -7,6 +7,8 @@ import { webhookRoutes } from "./routes/webhook.js";
 import { crudRoutes } from "./routes/crud.js";
 import { authRoutes } from "./routes/auth.js";
 import { businessRoutes } from "./routes/business.js";
+import { provisioningRoutes } from "./routes/provisioning.js";
+import { agentRouterRoutes } from "./routes/agent-router.js";
 
 const app = Fastify({ logger: true });
 
@@ -16,6 +18,8 @@ await app.register(authRoutes);
 await app.register(webhookRoutes);
 await app.register(crudRoutes);
 await app.register(businessRoutes);
+await app.register(provisioningRoutes);
+await app.register(agentRouterRoutes);
 
 app.listen({ port: env.API_PORT, host: "0.0.0.0" }).catch((err) => {
   app.log.error(err);

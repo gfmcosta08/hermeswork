@@ -22,7 +22,7 @@ export async function businessRoutes(app: FastifyInstance) {
       supabaseAdmin.from("transacao").select("id", { count: "exact", head: true }).eq("empresa_id", auth.empresaId),
       supabaseAdmin.from("financeiro").select("tipo, valor").eq("empresa_id", auth.empresaId),
       supabaseAdmin.from("imovel").select("id", { count: "exact", head: true }).eq("empresa_id", auth.empresaId),
-      supabaseAdmin.from("lead_imovel").select("id", { count: "exact", head: true }).eq("empresa_id", auth.empresaId),
+      supabaseAdmin.from("lead_imobiliario").select("id", { count: "exact", head: true }).eq("empresa_id", auth.empresaId),
     ]);
 
     const receitas = (financeiro.data ?? []).filter((f) => f.tipo === "receita").reduce((acc, item) => acc + Number(item.valor || 0), 0);

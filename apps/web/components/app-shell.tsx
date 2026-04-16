@@ -15,6 +15,13 @@ const items = [
   { href: "/app/imoveis", label: "Imóveis" },
 ];
 
+const adminItems = [
+  { href: "/app/administracao", label: "Administração" },
+  { href: "/app/administracao/provisionamento", label: "Provisionamento" },
+  { href: "/app/administracao/logs", label: "Logs" },
+  { href: "/app/administracao/saude", label: "Saúde Instâncias" },
+];
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -58,6 +65,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {item.label}
               </Link>
             ))}
+            {user.role === "admin" ? (
+              <>
+                <div className="my-2 border-t border-black/10 pt-2 text-xs uppercase text-black/40">Admin</div>
+                {adminItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`block rounded-lg px-3 py-2 text-sm ${
+                      pathname === item.href ? "bg-farol-coral text-white font-semibold" : "hover:bg-black/5"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </>
+            ) : null}
           </nav>
         </aside>
         <section>{children}</section>

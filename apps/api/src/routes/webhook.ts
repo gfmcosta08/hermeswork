@@ -26,6 +26,14 @@ export async function webhookRoutes(app: FastifyInstance) {
     }
 
     if (!verifySignature(body.data, timestamp, signature)) {
+      await supabaseAdmin.from("audit_log").insert({
+        empresa_id: clienteId,
+        actor_type: "provider",
+        actor_id: null,
+        action_name: "webhook_invalid_signature",
+        action_payload: { eventId, timestamp },
+        result_status: "error",
+      });
       return reply.status(403).send({ error: "Assinatura inválida" });
     }
 
@@ -44,6 +52,15 @@ export async function webhookRoutes(app: FastifyInstance) {
     }
 
     if (body.data.instanceToken !== agent.auth_token) {
+      await supabaseAdmin.from("audit_log").insert({
+        empresa_id: clienteId,
+        actor_type: "provider",
+        actor_id: null,
+        action_name: "webhook_token_mismatch",
+        action_payload: body.data,
+        result_status: "error",
+      });
+
       await supabaseAdmin.from("log_acao").insert({
         empresa_id: clienteId,
         origem: "webhook",
@@ -59,8 +76,22 @@ export async function webhookRoutes(app: FastifyInstance) {
       empresa_id: clienteId,
       provider_event_id: eventId,
       provider_message_id: body.data.messageId ?? null,
+      canal: "whatsapp",
+      direction: "inbound",
+      payload_raw: body.data,
       payload: body.data,
+      normalized_text: body.data.text ?? null,
+      dedupe_key: `${clienteId}:${eventId}`,
       status: "recebido",
+    });
+
+    await supabaseAdmin.from("audit_log").insert({
+      empresa_id: clienteId,
+      actor_type: "provider",
+      actor_id: null,
+      action_name: "webhook_received",
+      action_payload: { eventId, messageId: body.data.messageId ?? null },
+      result_status: "success",
     });
 
     return reply.status(200).send({ ok: true });

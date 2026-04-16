@@ -7,6 +7,11 @@ const envSchema = z.object({
   WEBHOOK_HMAC_SECRET: z.string().min(16),
   AGENT_ROUTER_SECRET: z.string().min(16),
   JWT_SECRET: z.string().min(16),
+  INTERNAL_PROVISION_TOKEN: z.string().min(16),
+  PROVISIONER_MODE: z.enum(["hostinger_api", "local_vps"]).default("local_vps"),
+  PROVISIONER_ALLOWED_ORIGINS: z.string().default(""),
+  HOSTINGER_API_URL: z.string().url().optional(),
+  HOSTINGER_API_TOKEN: z.string().optional(),
   WHATSAPP_PROVIDER_URL: z.string().url().optional(),
   WHATSAPP_PROVIDER_TOKEN: z.string().optional(),
 });
